@@ -10,7 +10,6 @@ const issueSchema = new Schema( //defines the structure
     mail: {
       type: String,
       required: true,
-      unique: true,
     },
     phone: {
       type: String,
@@ -40,6 +39,10 @@ const issueSchema = new Schema( //defines the structure
       default: "",
     },
     taskmanger_mail_sent: {
+      type: Boolean,
+      default: false,
+    },
+    issue_complete: {
       type: Boolean,
       default: false,
     },

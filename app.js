@@ -97,7 +97,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/issues/create", (req, res) => {
-  res.render("issueCreate");
+  res.render("issueCreate", { msg: "" });
 });
 
 app.post("/issues/created", (req, res) => {
@@ -116,6 +116,7 @@ app.post("/issues/created", (req, res) => {
     .save()
     .then((result) => {
       const output = `<p> Thank you ${req.body.uname} for bringing the isuue to our notice , we will start working on it</p>
+      Your issue id: <b>${req.body.issueID}</b>
   <p>Regards</p>
   <p>Manager</p>
   <p>Department of Safety and Management</p>
@@ -157,7 +158,8 @@ app.post("/issues/created", (req, res) => {
       });
     })
     .catch((err) => {
-      console.log("error: " + err.message);
+      res.render("issueCreate", { msg: err.message });
+      // console.log("error: " + err.message);
     });
 });
 
@@ -250,6 +252,15 @@ app.delete("/issues/:id", (req, res) => {
     .catch((e) => console.log(e));
 });
 
+app.delete("/delete/:id", (req, res) => {
+  const id = req.params.id;
+  Issue.findByIdAndDelete(id)
+    .then((result) => {
+      res.json({ redirect: "/issues" });
+    })
+    .catch((e) => console.log(e));
+});
+
 app.post("/assign/:id", (req, res) => {
   const id = req.params.id;
   console.log(req.body);
@@ -265,6 +276,23 @@ app.post("/assign/:id", (req, res) => {
   //     res.json({ redirect: "/issues" });
   //   })
   //   .catch((e) => console.log(e));
+});
+
+app.post("/iscomplete/:id", (req, res) => {
+  // res.send("hi");
+  console.log(req.body.flexCheckChecked);
+  const id = req.params.id;
+  if (req.body.flexCheckChecked == "on")
+    Issue.findByIdAndUpdate(id, { issue_complete: true })
+      .then((result) => {
+        res.redirect(`/issues/${id}`);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  else {
+    res.redirect(`/issues/${id}`);
+  }
 });
 
 app.get("/login", isLoggedout, (req, res) => {
