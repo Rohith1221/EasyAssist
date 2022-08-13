@@ -2,19 +2,23 @@ const express = require("express");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
 const formidable = require("formidable");
+const fs = require("fs");
 const passport = require("passport");
 const localStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcrypt");
 const session = require("express-session");
 const dotenv = require("dotenv");
 const nodemailer = require("nodemailer");
+const busboyBodyParser = require("busboy-body-parser");
+const bodyParser = require("body-parser");
+const path = require("path");
+
+const multer = require("multer");
 
 const Issue = require("./models/isssue");
 const User = require("./models/user");
-// const { countDocuments } = require("./models/isssue");
 
 const app = express();
-
 dotenv.config();
 
 const dbURL = process.env.dbURL;
@@ -23,14 +27,14 @@ mongoose
   .connect(dbURL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then((result) => {
     console.log("connected to db");
-    app.listen(3000, () => {
-      console.log("listening on port 3000");
-    });
   })
   .catch((error) => {
     console.log(error);
   }); //ascynch task
-
+  
+  app.listen(3000, () => {
+    console.log("listening on port 3000");
+  });
 // register new engine
 app.set("view engine", "ejs");
 
@@ -47,6 +51,29 @@ app.use(
   })
 );
 app.use(express.json());
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/Images");
+  },
+  filename: (req, file, cb) => {
+    console.log(file);
+    var today = new Date();
+    cb(
+      null,
+      today.getDate() +
+        "-" +
+        today.getMonth() +
+        "-" +
+        today.getFullYear() +
+        "_" +
+        req.body.issueID +
+        path.extname(file.originalname)
+    );
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // passport js
 app.use(passport.initialize());
@@ -97,21 +124,22 @@ app.get("/", (req, res) => {
 });
 
 app.get("/issues/create", (req, res) => {
-  res.render("issueCreate", { msg: "" });
+  res.render("issueCreate");
 });
 
-app.post("/issues/created", (req, res) => {
+app.post("/issuecreate", upload.single("img"), (req, res) => {
+  console.log(req.file);
   console.log(req.body);
-  // image upload
-  // var form = new formidable.IncomingForm();
-  // form.parse(req);
-  // form.on("fileBegin", (name, file) => {
-  //   file.path = __dirname + "/uploads/" + file.name;
-  // });
-  // form.on("file", (name, file) => {
-  //   console.log("uploaded file: " + file.name);
-  // });
-  const issue = new Issue(req.body);
+  const issue = new Issue({
+    uname: req.body.uname,
+    latitude: req.body.latitude,
+    longitude: req.body.longitude,
+    issueID: req.body.issueID,
+    mail: req.body.mail,
+    phone: req.body.phone,
+    Complaint_description: req.body.Complaint_description,
+    img: req.file.filename,
+  });
   issue
     .save()
     .then((result) => {
@@ -153,13 +181,23 @@ app.post("/issues/created", (req, res) => {
         console.log("Message sent: %s", info.messageId);
         console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
 
-        res.render("issueCreated", { issue: result });
         // res.render('contact', {msg:'Email has been sent'});
       });
+
+      var formData = new formidable.IncomingForm();
+      formData.parse(req, function (error, fields, files) {
+        console.log(files);
+        var extension = files.img.name.substr(files.img.name.lastIndexOf("."));
+        var newPath = "uploads/" + fields.issueID + extension;
+        fs.rename(files.file.path, newPath, function (error) {
+          res.send("File saved =" + newPath);
+        });
+      });
+
+      res.render("issueCreated", { issue: result, img: req.file });
     })
     .catch((err) => {
-      res.render("issueCreate", { msg: err.message });
-      // console.log("error: " + err.message);
+      console.log("error: " + err.message);
     });
 });
 

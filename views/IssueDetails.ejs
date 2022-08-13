@@ -118,6 +118,20 @@
           <p class="card-text"><%= issue.task_manger_mail%></p>
           <h6 class="card-title"><b>Date registered:</b></h6>
           <p class="card-text"><%=s%></p>
+          <h6 class="card-title"><b>Image captured:</b></h6>
+          <div class="container" style="display: flex; justify-content: center">
+            <img
+              src="/Images/<%=issue.img%>"
+              style="
+                width: 50%;
+                height: 50%;
+                scale: 1;
+                object-fit: contain;
+                border-radius: 5px;
+              "
+              alt="image not available"
+            />
+          </div>
           <% if(issue.issue_complete){%>
           <h6 class="card-title"><b>Date work completed:</b></h6>
           <p class="card-text"><%=ending%></p>
