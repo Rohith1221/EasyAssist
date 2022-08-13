@@ -21,6 +21,5 @@ system</li>
 to complaints and upon assigning task manager he or she will get a
 mail regarding the complaint .</li>
 </ul>
-<h3>Skills Developed:</h3> NodeJs, MongoDB, Bootstrap, NPM, HTML, CSS
-<h3>Screen shots:</h3>
-![Screenshot (546)](https://user-images.githubusercontent.com/62758125/184472994-8f8d2328-7d49-4232-b2df-9efb3e13ad7c.png)
+
+
